@@ -16,9 +16,10 @@ if(process.env.C9_PORT !== undefined){
 
 var mimeType = function(request, response) {
         request.on('data', function(fileData) {
-            var file = spawn('file', ['-biN', ' - ']);
+            var file = spawn('file', ['-biN','-']);
             file.stdout.on('data', function(data) {
-                console.log("Data: " + data);
+                data +="";
+                console.log("Data: " + (typeof data));
                 var results = data.split(";");
                 var mime = {};
                 mime.mimetype = results[0];
@@ -36,7 +37,7 @@ var mimeType = function(request, response) {
                 response.write(data);
                 response.end();
             });
-            file.stdin.write(fileData);
+            file.stdin.write(fileData, 'binary');
             file.stdin.end();
         });
     };
