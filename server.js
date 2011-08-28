@@ -16,7 +16,8 @@ var url = require('url');
 // trim11 by  Steven Levithan see http://blog.stevenlevithan.com/archives/faster-trim-javascript
 function trim11 (str) { 
 	str = str.replace(/^\s+/, '');
-	for (var i = str.length - 1; i >== 0; i--) {
+    
+	for (var i = str.length-1 ; i >= 0; i--) {
 		if (/\S/.test(str.charAt(i))) {
 			str = str.substring(0, i + 1);
 			break;
