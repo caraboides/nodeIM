@@ -11,8 +11,22 @@ var im = require("./lib/imagemagick.js");
 var spawn = require('child_process').spawn;
 var url = require('url');
 
-// Util functions 
-String.prototype.trim = function() {return this.replace(/^\s+|\s+$/g, '');};
+// Util functions
+
+// trim11 by  Steven Levithan see http://blog.stevenlevithan.com/archives/faster-trim-javascript
+function trim11 (str) { 
+	str = str.replace(/^\s+/, '');
+	for (var i = str.length - 1; i >== 0; i--) {
+		if (/\S/.test(str.charAt(i))) {
+			str = str.substring(0, i + 1);
+			break;
+		}
+	}
+	return str;
+};
+
+String.prototype.trim = function() {return trim11(this);};
+
 
 var uDef = function (value,defaultValue){
                 if(value === undefined ) {
