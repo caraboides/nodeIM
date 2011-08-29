@@ -1,0 +1,23 @@
+
+to Start server:
+
+ node server.js
+
+
+To convert:
+
+curl --data-binary @image.png  http://127.0.0.1:8124/convert\?source=png\&target=jpg\&backgroundcolor=ffff00
+
+"backgroundcolor" is not necassary
+"compress" is also possiple like:
+
+curl --data-binary @E-Book-Reader-Acer-LumiRead.png  http://127.0.0.1:8124/convert\?source=png\&target=jpg\&backgroundcolor=ffff00\&compress=70
+
+
+for mime Infos:
+
+curl --data-binary @E-Book-Reader-Acer-LumiRead.png  http://127.0.0.1:8124/mime
+
+for native "file" infos:
+
+curl --data-binary @E-Book-Reader-Acer-LumiRead.png  http://127.0.0.1:8124/file
