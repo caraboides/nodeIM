@@ -1,3 +1,7 @@
+nodeIM
+
+is a Webservice around image-magic and the unix tool file
+
 
 to Start server:
 
@@ -8,7 +12,7 @@ To convert:
 
 curl --data-binary @image.png  http://127.0.0.1:8124/convert\?source=png\&target=jpg\&backgroundcolor=ffff00
 
-"backgroundcolor" is not necassary
+"backgroundcolor" is not necessary
 "compress" is also possiple like:
 
 curl --data-binary @E-Book-Reader-Acer-LumiRead.png  http://127.0.0.1:8124/convert\?source=png\&target=jpg\&backgroundcolor=ffff00\&compress=70
