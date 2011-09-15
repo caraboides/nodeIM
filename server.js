@@ -169,7 +169,7 @@ http.createServer(function(request, response) {
         else {
                 wrongApiCall(response);
         }
-}).listen(8124);
+}).listen(port);
 var wrongApiCall = function(response) {
         response.writeHead(303, {
                 'Content-Type': 'text/plain',
@@ -179,4 +179,4 @@ var wrongApiCall = function(response) {
         response.end();
 };
 console.log('Current directory: ' + process.cwd());
-console.log('Server running at http://127.0.0.1:8124/');
+console.log('Server running at http://127.0.0.1:'+port);
