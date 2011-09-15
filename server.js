@@ -7,7 +7,6 @@
 var http = require('http');
 var sys = require('util');
 var fs = require("fs");
-var im = require("./lib/imagemagick.js");
 var spawn = require('child_process').spawn;
 var url = require('url');
 
