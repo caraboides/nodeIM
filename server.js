@@ -131,44 +131,40 @@ var displayform = function (res) {
 }
 
 var compositeImage =  function(request, response,parms) {
-    console.log("merge Image \n");
-    var fileOne = '';
-    var fileTwo = '';
+    var fileOne =undefined;
+    var fileTwo =undefined;
     var parsed = multipart.parseContentType(request.headers['content-type']);
     if (parsed.type === 'multipart') {
         var parser = new multipart.Parser(request, parsed.boundary);
         parser.on('part', function(part) {
-            console.log("part");
+            //console.log("part");
             // Fired once for each individual part of the multipart message.
             // 'part' is a ReadableStream that also emits a 'headers' event.
-            var partInfo =
-            temp.openSync('nodeIM');
+            var partInfo;
              
             part.on('headers', function(headers) {
-                console.log(headers);
+                console.log( headers);
+               partInfo = temp.openSync( {prefix: "nodeIM", suffix: headers['Content-Type'].replace(/\//,'.')});
             });
             part.on('data', function(chunk) {
-                console.log("data");
                 fs.write(partInfo.fd, chunk);
             });
             part.on('end', function() {
-                console.log("partend"+partInfo);
-                fs.close(partInfo.fd, function(err) {
+                fs.closeSync(partInfo.fd, function(err) {
                     if (err) throw err;
-                    console.log(partInfo);
-                    if (fileOne==='') {
-                        fileOne = partInfo.path;
-                    } else {
-                        fileTwo = partInfo.path;
-                    }
                    
                 });
+                    if (fileOne === undefined) {
+                        fileOne = partInfo.path;
+                        return;
+                    }
+                    fileTwo = partInfo.path; 
             });
         });
         var headerBuilder = function(){
             response.writeHead(200, {
-                'Content-Type': 'text/plain'
-            // 'Content-Type': 'image/'+parms.targettype
+              //  'Content-Type': 'text/plain'
+             'Content-Type': 'image/'+parms.targettype
             });
             return undefined;
         }
@@ -179,10 +175,10 @@ var compositeImage =  function(request, response,parms) {
             console.log(data);
             response.write(data);
         };
-        parser.on('end', function(chunk) {
-            console.log("parser end");
+        request.on('end', function() {
+            console.log("parser end "+fileOne+" "+fileTwo);
 
-            var comand = 'echo';
+            var comand = 'composite';
             var params = ['-geometry',parms.geometry,fileOne,fileTwo,parms.targettype+':-'];
             doWork(undefined,response,comand,params,ondata);
         });
