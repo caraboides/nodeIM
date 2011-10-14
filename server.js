@@ -10,7 +10,10 @@ var fs = require("fs");
 var spawn = require('child_process').spawn;
 var multipart = require('multipart-stack');
 var url = require('url');
-var temp = require('temp');
+
+
+var temp = "/tmp";
+
 
 // Util functions
 
@@ -130,41 +133,53 @@ var displayform = function (res) {
         );
 }
 
+
+
 var compositeImage =  function(request, response,parms) {
     var fileOne =undefined;
     var fileTwo =undefined;
+    var fileNameOne;
+    var fileNameTwo;
     var parsed = multipart.parseContentType(request.headers['content-type']);
     if (parsed.type === 'multipart') {
         var parser = new multipart.Parser(request, parsed.boundary);
         parser.on('part', function(part) {
-            //console.log("part");
-            // Fired once for each individual part of the multipart message.
-            // 'part' is a ReadableStream that also emits a 'headers' event.
             var partInfo;
-             
             part.on('headers', function(headers) {
-                console.log( headers);
-               partInfo = temp.openSync( {prefix: "nodeIM", suffix: headers['Content-Type'].replace(/\//,'.')});
+                suffix =  headers['Content-Type'].replace(/\//,'.')
+                r = Math.random();
+                if(fileOne===undefined){
+                    fileNameOne = temp+"/"+r+suffix;
+                    fileOne = fs.createWriteStream(fileNameOne);
+                    return;
+                }
+                if(fileTwo===undefined){
+                    fileNameTwo = temp+"/"+r+suffix;
+
+                    fileTwo = fs.createWriteStream(fileNameTwo);
+                    return;
+                }
             });
             part.on('data', function(chunk) {
-                fs.write(partInfo.fd, chunk);
+                if(fileTwo===undefined){
+                    fileOne.write(chunk, "binary");
+                }else{
+                    fileTwo.write(chunk, "binary");
+                }
             });
             part.on('end', function() {
-                fs.closeSync(partInfo.fd, function(err) {
-                    if (err) throw err;
-                   
-                });
-                    if (fileOne === undefined) {
-                        fileOne = partInfo.path;
-                        return;
-                    }
-                    fileTwo = partInfo.path; 
+                if(fileTwo===undefined){
+                    fileOne.addListener("drain", function() {
+
+                        // Close file stream
+                        fileOne.end();
+                    });
+                }
             });
         });
         var headerBuilder = function(){
             response.writeHead(200, {
-              //  'Content-Type': 'text/plain'
-             'Content-Type': 'image/'+parms.targettype
+                'Content-Type': 'image/'+parms.targettype
             });
             return undefined;
         }
@@ -172,15 +187,26 @@ var compositeImage =  function(request, response,parms) {
             if(headerBuilder!==undefined){
                 headerBuilder =    headerBuilder();
             }
-            console.log(data);
             response.write(data);
         };
+        
         request.on('end', function() {
-            console.log("parser end "+fileOne+" "+fileTwo);
+        
+            fileTwo.addListener("drain", function() {
 
-            var comand = 'composite';
-            var params = ['-geometry',parms.geometry,fileOne,fileTwo,parms.targettype+':-'];
-            doWork(undefined,response,comand,params,ondata);
+                // Close file stream
+                fileTwo.end();
+                
+                console.log("parser end "+fileNameOne+" "+fileNameTwo);
+                // Handle request completion, as all chunks were already written
+                var comand = 'composite';
+                var params = ['-geometry',parms.geometry,fileNameOne,fileNameTwo,parms.targettype+':-'];
+                doWork(undefined,response,comand,params,ondata);
+                
+            });
+
+
+
         });
     
     } else {
