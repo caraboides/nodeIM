@@ -12,6 +12,7 @@ var multipart = require('multipart-stack');
 var url = require('url');
 
 
+// var temp = "/dev/shm";
 var temp = "/tmp";
 
 
@@ -29,7 +30,6 @@ function trim11 (str) {
     }
     return str;
 };
-
 String.prototype.trim = function() {
     return trim11(this);
 };
@@ -42,11 +42,14 @@ var uDef = function (value,defaultValue){
 var port = uDef(process.env.C9_PORT,8124);
 
     
-var doWork = function(request,response,comand,parms,ondata){
+var doWork = function(request,response,comand,parms,ondata,onEnd){
     var file = spawn(comand, parms);
     file.stdout.on('data', ondata);
     file.stdout.on('end',function(){
         response.end();
+        if(onEnd!==undefined){
+            onEnd();
+        }
     });
     file.stderr.on('data', function(data) {
         response.writeHead(403, {
@@ -125,7 +128,7 @@ var displayform = function (res) {
         'Content-Type': 'text/html'
     });
     res.end(
-        '<form action="/merge?geometry=10x10&targettype=jpg" method="post" enctype="multipart/form-data">'+
+        '<form action="/merge?-geometry=10x10&targettype=jpg" method="post" enctype="multipart/form-data">'+
         '<input type="file" name="upload1-file">'+
         '<input type="file" name="upload2-file">'+
         '<input type="submit" value="Upload">'+
@@ -136,6 +139,7 @@ var displayform = function (res) {
 
 
 var compositeImage =  function(request, response,parms) {
+    
     var fileOne =undefined;
     var fileTwo =undefined;
     var fileNameOne;
@@ -196,12 +200,14 @@ var compositeImage =  function(request, response,parms) {
 
                 // Close file stream
                 fileTwo.end();
-                
-                console.log("parser end "+fileNameOne+" "+fileNameTwo);
                 // Handle request completion, as all chunks were already written
                 var comand = 'composite';
-                var params = ['-geometry',parms.geometry,fileNameOne,fileNameTwo,parms.targettype+':-'];
-                doWork(undefined,response,comand,params,ondata);
+                var options = extract_comandOptions(parms)
+                var params = options.concat([fileNameOne,fileNameTwo,parms.targettype+':-']);
+                doWork(undefined,response,comand,params,ondata,function(){
+                    cleanFile(fileNameOne);
+                    cleanFile(fileNameTwo);
+                });
                 
             });
 
@@ -213,8 +219,25 @@ var compositeImage =  function(request, response,parms) {
         wrongApiCall(response);
     }
 }
+/**
+ * Add all params, who might be options for the comand, so most option will be supportet
+ */
+var extract_comandOptions = function(params){
+    var returnValue = [];
+    for(var i in params) {
+        if(params.hasOwnProperty(i)){
+            if('-' === i.toString().charAt(0)){
+              returnValue = returnValue.concat([i,params[i]]);
+            }
+        }
+        
+    }
+    return returnValue;
+}
 
-
+var cleanFile = function(path){
+    fs.unlink(path);
+}
   
 http.createServer(function(request, response) {
     var parasedUrl = url.parse(request.url,true);
