@@ -10,13 +10,11 @@ to Start server:
 
 To convert:
 
-curl --data-binary @image.png  http://127.0.0.1:8124/convert\?source=png\&target=jpg\&backgroundcolor=ffff00
+curl --data-binary @image.png  http://127.0.0.1:8124/convert\?source=png\&target=jpg
 
-"backgroundcolor" is not necessary
-"compress" is also possiple like:
+The params are the same like the native convert programm, like "-quality value":
 
-curl --data-binary @E-Book-Reader-Acer-LumiRead.png  http://127.0.0.1:8124/convert\?source=png\&target=jpg\&backgroundcolor=ffff00\&compress=70
-
+curl --data-binary @image.png  http://127.0.0.1:8124/convert\?source=png\&target=jpg\&quality=90
 
 for mime Infos:
 
