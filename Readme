@@ -2,6 +2,8 @@ nodeIM
 
 is a Webservice around image-magic and the unix tool file
 
+For image optimizing u need optipng and ittleutils-1.0.24
+
 
 to Start server:
 
